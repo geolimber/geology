@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+# This script converts set of vertices of the mining concession (UTM coordinates) to polygon in *.wkt format (Well Known Text).
 import sys
 
 
@@ -8,6 +9,7 @@ def savePolygon(filename, polygon):
     newFile = filename[0:-4] + ".wkt"
     outFile = open(newFile, 'w')
     outFile.write("id;wkt\n" + lineWkt)
+    print('Conversion completed. File {} was created successfully.'.format(newFile))
 
 
 def makePolygon(filename):
