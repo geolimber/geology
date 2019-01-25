@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-# This script converts set of vertices of the mining concession (UTM coordinates) to polygon in *.wkt format (Well Known Text).
+# This script converts set of vertices of the mining concession given in .csv file (UTM coordinates) to polygon in *.wkt format (Well Known Text).
 import sys
 
 
@@ -29,4 +29,5 @@ def makePolygon(filename):
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        makePolygon(sys.argv[1])
+        for i in range(1, len(sys.argv)):
+            makePolygon(sys.argv[i])
