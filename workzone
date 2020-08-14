@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Look for all .gpx files in current folder, get all latitude and longitude
+# coordinates from this files, sort coordinates to determine minimum and
+# maximum values. Then printout coordinates of the vertices of the rectangular
+# zone which limits all the points. And finally convert previously printed
+# coordinates to UTM WGS84.
+
+clear
+declare -a latitudes
+declare -a longitudes
+
+# Function to get utm zone from given longitude
+getUtmZone () {
+	echo "(($1 + 180) / 6) + 1" | bc
+	
+}
+
+latitudes+=($(find . -type f -name "*.gpx" \
+-exec grep --only-matching 'lat=\"-*[0-9]\{,3\}\.[[:digit:]]\{,10\}' '{}' ';' \
+| cut -f 2 -d \" | sort -n))
+#echo "Min lat = ${latitudes[0]} Max lat = ${latitudes[-1]}"
+
+longitudes+=($(find . -type f -name "*.gpx" \
+-exec grep --only-matching 'lon=\"-*[0-9]\{,3\}\.[[:digit:]]\{,10\}' '{}' ';' \
+| cut -f 2 -d \" | sort -n))
+#echo "Min lon = ${longitudes[0]} Max lon = ${longitudes[-1]}"
+echo -e "Found $(ls *.gpx | wc -l) .gpx files\n\n"
+
+printf "Work territory limits. Lat/Lon WGS84.\n"
+printf "+"; printf "=%.0s" {1..53}; printf "+\n"
+printf "|%6s | %20s | %20s |\n" 'POINT' 'LATITUDE' 'LONGITUDE'
+printf "+"; printf "=%.0s" {1..53}; printf "+\n"
+printf "|%6s   | %20s | %20s |\n" '◰' ${latitudes[-1]} ${longitudes[0]}
+printf "|%6s   | %20s | %20s |\n" '◳' ${latitudes[-1]} ${longitudes[-1]}
+printf "|%6s   | %20s | %20s |\n" '◲' ${latitudes[0]} ${longitudes[-1]}
+printf "|%6s   | %20s | %20s |\n" '◱' ${latitudes[0]} ${longitudes[0]}
+printf "+"; printf "=%.0s" {1..53}; printf "+\n" 
+
+utm_zone=$(getUtmZone ${longitudes[0]})
+hemisphere=$(echo "${latitudes[0]} > 0" | bc)
+
+if [ $hemisphere -eq 1 ]; then
+    hemisphere="north"
+else
+    hemisphere="south"
+fi
+
+echo -en "\n\nWork territory limits. UTM WGS84. Utm zone $utm_zone\n" 
+
+north_west="◰ $(echo ${longitudes[0]} ${latitudes[-1]} |  proj +proj=utm +zone=$utm_zone +$hemisphere)"
+north_east="◳ $(echo ${longitudes[-1]} ${latitudes[-1]} |  proj +proj=utm +zone=$utm_zone +$hemisphere)"
+south_east="◲ $(echo ${longitudes[-1]} ${latitudes[0]} |  proj +proj=utm +zone=$utm_zone +$hemisphere)"
+south_west="◱ $(echo ${longitudes[0]} ${latitudes[0]} |  proj +proj=utm +zone=$utm_zone +$hemisphere)"
+
+printf "+"; printf "=%.0s" {1..53}; printf "+\n"
+printf "|%6s | %20s | %20s |\n" 'POINT' 'EASTING' 'NORTHING'
+printf "+"; printf "=%.0s" {1..53}; printf "+\n"
+printf "|%6s   | %20s | %20s |\n" $north_west
+printf "|%6s   | %20s | %20s |\n" $north_east
+printf "|%6s   | %20s | %20s |\n" $south_east
+printf "|%6s   | %20s | %20s |\n" $south_west
+printf "+"; printf "=%.0s" {1..53}; printf "+\n"
