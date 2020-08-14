@@ -36,3 +36,8 @@ id;wkt
 *TODO:*
 - [X] Various files handling
 - [ ] When there is no filename provided, process all *.csv* files in current folder.
+-
+## workzone
+Bash script to get work zone vertices. 
+Minimum dependencies, [proj](https://proj.org/) and bc.
+Look for all .gpx files in current folder, get all latitude and longitude coordinates from this files, sort coordinates to determine minimum and maximum values. Then printout coordinates of the vertices of the rectangular zone which limits all the points. And finally convert previously printed coordinates to UTM WGS84.
